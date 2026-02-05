@@ -1,8 +1,6 @@
-
-"use client";
-
+import { useState } from "react";
 import { NewsItem } from "@/lib/data";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Image as ImageIcon } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface NewsCardProps {
@@ -10,37 +8,64 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ news }: NewsCardProps) {
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    // Parse description for bullet points
+    const formattedDescription = news.description.split('\n').map((line, index) => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('*')) {
+            return (
+                <li key={index} className="ml-4 list-disc pl-1 mb-2">
+                    {trimmedLine.replace(/^\*\s*/, '')}
+                </li>
+            );
+        }
+        if (trimmedLine === '') return null;
+        return <p key={index} className="mb-2">{trimmedLine}</p>;
+    });
+
     return (
-        <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-gray-100">
+        <div className="flex flex-col w-full max-w-md max-h-[75vh] md:max-h-[600px] overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-gray-100">
             {/* Title Section */}
-            <div className="p-6 pb-4">
-                <h2 className="text-xl/tight font-bold text-gray-900">
+            <div className="flex-shrink-0 p-6 pb-4">
+                <h2 className="text-xl/tight font-bold text-gray-900 line-clamp-3">
                     {news.title}
                 </h2>
             </div>
 
             {/* Image Section */}
-            <div className="relative aspect-video w-full overflow-hidden px-5">
+            <div className="relative flex-shrink-0 aspect-video w-full overflow-hidden px-5">
+                {!imageLoaded && (
+                    <div className="absolute inset-0 mx-5 rounded-2xl bg-gray-200 animate-pulse flex items-center justify-center">
+                        <ImageIcon className="text-gray-400 w-10 h-10" />
+                    </div>
+                )}
                 <img
                     src={news.imageUrl}
                     alt={news.title}
-                    className="h-full w-full rounded-2xl object-cover"
+                    className={`h-full w-full rounded-2xl object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    onLoad={() => setImageLoaded(true)}
                 />
             </div>
 
             {/* Content Section */}
-            <div className="p-6 pt-4">
+            <div className="flex flex-col flex-1 p-6 pt-4 min-h-0">
                 {/* Meta */}
-                <div className="mb-4 flex items-center gap-2 text-xs font-medium text-gray-500">
+                <div className="flex-shrink-0 mb-4 flex items-center gap-2 text-xs font-medium text-gray-500">
                     <span>{news.date}</span>
                     <span>|</span>
                     <span>{news.source}</span>
                 </div>
 
-                {/* Description */}
-                <p className="mb-6 text-sm leading-relaxed text-gray-600">
-                    {news.description}
-                </p>
+                {/* Description - Scrollable container */}
+                <div
+                    className="flex-1 overflow-y-auto mb-4 text-sm leading-relaxed text-gray-600 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']"
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    onTouchEnd={(e) => e.stopPropagation()}
+                >
+                    {formattedDescription}
+                </div>
 
                 {/* Footer / Hashtags */}
                 <div className="flex items-center justify-between">
@@ -52,9 +77,14 @@ export function NewsCard({ news }: NewsCardProps) {
                         ))}
                     </div>
 
-                    <button className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition-colors hover:bg-gray-50 hover:text-black">
+                    <a
+                        href={news.articleUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition-colors hover:bg-gray-50 hover:text-black"
+                    >
                         <ArrowUpRight size={18} />
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

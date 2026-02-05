@@ -2,20 +2,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { NewsItem } from "@/lib/data";
+import { NewsItem, categories, Category } from "@/lib/data";
 import { NewsCard } from "./NewsCard";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NewsFeedProps {
     news: NewsItem[];
+    selectedCategory: Category;
+    onSelectCategory: (category: Category) => void;
 }
 
 // ... (imports)
 
-export function NewsFeed({ news }: NewsFeedProps) {
+export function NewsFeed({ news, selectedCategory, onSelectCategory }: NewsFeedProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [direction, setDirection] = useState(0);
+
+    // Reset current index when category changes (news list changes)
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [news]);
 
     // Swipe state
     const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -83,9 +90,34 @@ export function NewsFeed({ news }: NewsFeedProps) {
 
     // Safety check: If no news, show empty state immediately
     if (!news || news.length === 0) {
+        // Filter out the current empty category from suggestions
+        const suggestions = categories.filter(
+            (c) => c !== selectedCategory
+        );
+
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-zinc-50 dark:bg-zinc-50">
-                <p className="text-gray-500">No news in this category.</p>
+            <div className="flex h-screen w-full flex-col items-center justify-center bg-zinc-50 px-4 text-center dark:bg-zinc-50">
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 border border-gray-200">
+                    <span className="text-4xl">📰</span>
+                </div>
+                <h3 className="mb-2 text-xl font-bold text-gray-800">No News Found</h3>
+                <p className="mb-8 max-w-sm text-gray-500">
+                    We couldn't find any recent updates in this category.
+                    Why not explore trending topics?
+                </p>
+
+                {/* Dynamic Suggestions */}
+                <div className="flex flex-wrap justify-center gap-3">
+                    {suggestions.map((category) => (
+                        <button
+                            key={category}
+                            onClick={() => onSelectCategory(category)}
+                            className="rounded-full bg-white px-5 py-2 text-sm font-medium text-gray-700 cursor-pointer ring-1 ring-gray-200 transition-hover hover:bg-gray-50 hover:ring-gray-300"
+                        >
+                            {`# ${category}`}
+                        </button>
+                    ))}
+                </div>
             </div>
         );
     }
