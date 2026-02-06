@@ -36,6 +36,8 @@ export async function POST(req: Request) {
                         title: record.fields.title || 'Untitled',
                         description: record.fields.description || '',
                         imageUrl: record.fields.imageUrl || 'https://via.placeholder.com/150',
+                        articleUrl: record.fields.articleUrl || '#',
+                        date: record.fields.date || new Date().toISOString().split('T')[0],
                     }));
                 }
             } catch (e) {
@@ -54,6 +56,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to fetch news for newsletter' }, { status: 500 });
         }
 
+        // Format Date: 06 Feb 2025
+        const today = new Date();
+        const dateOptions: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
+        const formattedDate = today.toLocaleDateString('en-GB', dateOptions);
+
         // Construct HTML
         const emailHtml = `
             <!DOCTYPE html>
@@ -64,20 +71,22 @@ export async function POST(req: Request) {
                     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; }
                     .header { text-align: center; margin-bottom: 30px; }
                     .header h1 { color: #2563eb; margin: 0; }
+                    .header p { color: #6b7280; font-size: 14px; margin-top: 5px; }
                     .news-item { display: flex; margin-bottom: 24px; border-bottom: 1px solid #e5e7eb; padding-bottom: 24px; }
                     .news-item:last-child { border-bottom: none; }
                     .news-image { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
                     .news-content { margin-left: 20px; flex: 1; }
-                    .news-title { font-size: 18px; font-weight: bold; color: #111827; margin: 0 0 8px 0; }
-                    .news-bullets { color: #4b5563; font-size: 14px; padding-left: 20px; margin: 0; }
-                    .news-bullets li { margin-bottom: 4px; }
+                    .news-title { font-size: 18px; font-weight: bold; color: #111827; margin: 0 0 4px 0; }
+                    .news-date { font-size: 12px; color: #9ca3af; margin: 0 0 4px 0; display: block; font-weight: 500; }
+                    .news-desc { color: #4b5563; font-size: 14px; line-height: 1.5; margin: 0; }
                     .read-more { color: #2563eb; text-decoration: none; font-weight: bold; margin-left: 5px; cursor: pointer; }
                     .footer { text-align: center; font-size: 12px; color: #9ca3af; margin-top: 30px; }
                     
                     /* Mobile Styles */
                     @media only screen and (max-width: 600px) {
                         .container { padding: 15px !important; width: 100% !important; }
-                        .news-item { display: block !important; border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+                        /* Increased gap and visible divider */
+                        .news-item { display: block !important; border-bottom: 2px solid #e5e7eb !important; padding-bottom: 30px !important; margin-bottom: 30px !important; }
                         .news-image { 
                             width: 100% !important; 
                             height: auto !important; 
@@ -87,9 +96,10 @@ export async function POST(req: Request) {
                             border-radius: 8px !important;
                         }
                         .news-content { margin-left: 0 !important; width: 100% !important; }
-                        .news-title { font-size: 18px !important; margin-bottom: 8px !important; }
+                        .news-title { font-size: 18px !important; margin-bottom: 4px !important; }
                         .news-desc { font-size: 14px !important; line-height: 1.5 !important; }
                         .read-more { display: inline-block !important; padding: 5px 0 !important; }
+                        .footer { text-align: center !important; width: 100% !important; }
                     }
                 </style>
             </head>
@@ -107,6 +117,7 @@ export async function POST(req: Request) {
                                 <img src="${item.imageUrl}" alt="${item.title}" class="news-image" />
                             </a>
                             <div class="news-content">
+                                <span class="news-date">${item.date}</span>
                                 <h2 class="news-title">
                                     <a href="${item.articleUrl || '#'}" style="text-decoration: none; color: #111827;" target="_blank">
                                         ${item.title}
@@ -131,7 +142,7 @@ export async function POST(req: Request) {
         const { data, error } = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
             to: [email],
-            subject: 'Your PTB Shorts Daily Update',
+            subject: `Your PTB Shorts Daily Update For ${formattedDate}`,
             html: emailHtml,
         });
 
