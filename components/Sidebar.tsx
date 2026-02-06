@@ -3,7 +3,9 @@
 
 import { Category, categories, currentUser } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, ChevronRight, Hash, TrendingUp, DollarSign, Building2, Leaf, Cpu, Hammer, LogOut } from "lucide-react";
+import { LayoutGrid, ChevronRight, Hash, TrendingUp, DollarSign, Building2, Leaf, Cpu, Hammer, LogOut, Mail } from "lucide-react";
+import { useState } from "react";
+import { NewsletterModal } from "./NewsletterModal";
 
 interface SidebarProps {
     selectedCategory: Category;
@@ -33,6 +35,7 @@ export function Sidebar({ selectedCategory, onSelectCategory }: SidebarProps) {
 }
 
 export function SidebarContent({ selectedCategory, onSelectCategory }: SidebarProps) {
+    const [isNewsletterOpen, setIsNewsletterOpen] = useState(false);
     return (
         <div className="flex h-full flex-col">
             {/* 1. Header with Logo */}
@@ -112,6 +115,20 @@ export function SidebarContent({ selectedCategory, onSelectCategory }: SidebarPr
                             )}
                         </button>
                     ))}
+
+                    <div className="pt-4 mt-4 border-t border-gray-100">
+                        <button
+                            onClick={() => setIsNewsletterOpen(true)}
+                            className="flex w-full items-center gap-4 rounded-full px-4 py-3 text-left transition-all cursor-pointer select-none text-gray-100 hover:bg-gray-200/60"
+                        >
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-600 shadow-sm">
+                                <Mail size={20} />
+                            </div>
+                            <span className="text-[15px] font-medium text-gray-700">
+                                Newsletter
+                            </span>
+                        </button>
+                    </div>
                 </nav>
             </div>
 
@@ -130,6 +147,8 @@ export function SidebarContent({ selectedCategory, onSelectCategory }: SidebarPr
                     </div>
                 </div>
             </div>
+
+            <NewsletterModal isOpen={isNewsletterOpen} onClose={() => setIsNewsletterOpen(false)} />
         </div>
     );
 }

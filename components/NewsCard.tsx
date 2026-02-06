@@ -34,16 +34,16 @@ export function NewsCard({ news }: NewsCardProps) {
             </div>
 
             {/* Image Section */}
-            <div className="relative flex-shrink-0 aspect-video w-full overflow-hidden px-5">
+            <div className="relative flex-shrink-0 aspect-video w-full overflow-hidden">
                 {!imageLoaded && (
-                    <div className="absolute inset-0 mx-5 rounded-2xl bg-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="absolute inset-0 mx-5 bg-gray-200 animate-pulse flex items-center justify-center">
                         <ImageIcon className="text-gray-400 w-10 h-10" />
                     </div>
                 )}
                 <img
                     src={news.imageUrl}
                     alt={news.title}
-                    className={`h-full w-full rounded-2xl object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    className={`h-full w-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                     onLoad={() => setImageLoaded(true)}
                 />
             </div>
